@@ -32,7 +32,7 @@
     *{box-sizing:border-box}
     html,body{margin:0;height:100%;background:#070913;color:var(--text);overflow:hidden}
     body.scene-book{--active:var(--red);--active2:var(--gold)}
-    body.scene-group{--active:var(--gold);--active2:var(--pink)}
+    body.scene-birthday{--active:var(--gold);--active2:var(--pink)}
     body.scene-hours{--active:var(--cyan);--active2:var(--blue)}
     body.scene-games{--active:var(--purple);--active2:var(--blue)}
     body.scene-directions{--active:var(--green);--active2:var(--cyan)}
@@ -188,7 +188,7 @@
             <div class="panel-head">
               <div>
                 <div class="kicker">Selected cabinet</div>
-                <h2 class="panel-title" id="panelTitle">Demo demo enquiry</h2>
+                <h2 class="panel-title" id="panelTitle">Demo enquiry</h2>
               </div>
               <div class="scene-dot"></div>
             </div>
@@ -201,11 +201,11 @@
             <h3>Quick Actions</h3>
             <div class="action-grid">
               <button class="quick-btn active" data-scene="book"><small>Cabinet 1</small><strong>Demo Booking</strong></button>
-              <button class="quick-btn" data-scene="group"><small>Cabinet 2</small><strong>Group Events</strong></button>
+              <button class="quick-btn" data-scene="birthday"><small>Cabinet 2</small><strong>Group Events</strong></button>
               <button class="quick-btn" data-scene="hours"><small>Cabinet 3</small><strong>Visit Info</strong></button>
               <button class="quick-btn" data-scene="games"><small>Cabinet 4</small><strong>Game Vault</strong></button>
-              <button class="quick-btn" data-scene="map link"><small>Cabinet 5</small><strong>Map link</strong></button>
-              <button class="quick-btn" data-scene="social proof"><small>Cabinet 6</small><strong>Social proof</strong></button>
+              <button class="quick-btn" data-scene="directions"><small>Cabinet 5</small><strong>Map link</strong></button>
+              <button class="quick-btn" data-scene="reviews"><small>Cabinet 6</small><strong>Social proof</strong></button>
             </div>
           </section>
           <section class="quick-card">
@@ -236,14 +236,28 @@
     </div>
   </div>
 
+
+  <script>
+    window.__OLD_SCHOOL_3D_STARTED__ = false;
+    window.addEventListener('load', function(){
+      setTimeout(function(){
+        if (!window.__OLD_SCHOOL_3D_STARTED__) {
+          var note = document.querySelector('.sub-note');
+          if (note) note.textContent = 'Loading 3D engine. This demo needs an internet connection because Three.js is loaded from a CDN.';
+        }
+      }, 2500);
+    });
+  </script>
+
   <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.165.0/build/three.module.js';
+    window.__OLD_SCHOOL_3D_STARTED__ = true;
 
     const CONFIG = {
-      demo enquiryUrl: '#',
+      bookingUrl: '#',
       partiesUrl: '#',
       mapsUrl: '#',
-      social proofUrl: '#',
+      reviewsUrl: '#',
       websiteUrl: '#',
       gamesUrl: '#',
       shareUrl: window.location.href,};
@@ -255,9 +269,9 @@
     const SCENES = {
       book: {
         theme: 'scene-book',
-        title: 'Demo demo enquiry',
-        cta: 'Go to demo enquiry',
-        action: () => openLink(CONFIG.demo enquiryUrl),
+        title: 'Demo enquiry',
+        cta: 'Open demo enquiry',
+        action: () => openLink(CONFIG.bookingUrl),
         panel: `
           <p>Make the main conversion route obvious. This cabinet is the fastest path into the demo enquiry flow and works well from QR posters, Facebook traffic and Instagram bio links.</p>
           <div class="stats">
@@ -273,21 +287,21 @@
             <button class="action-btn primary" data-act="book">Open demo enquiry</button>
             <a class="action-btn" href="${CONFIG.websiteUrl}" target="_blank" rel="noopener">Demo website</a>
           </div>
-          <div class="tiny-note">Update <code>CONFIG.demo enquiryUrl</code> in the file before launch.</div>`
+          <div class="tiny-note">Replace the demo link when adapting this for a real client.</div>`
       },
-      group: {
-        theme: 'scene-group',
+      birthday: {
+        theme: 'scene-birthday',
         title: 'Group events',
-        cta: 'Party enquiry',
+        cta: 'Group enquiry',
         action: () => openLink(CONFIG.partiesUrl),
         panel: `
-          <p>This cabinet sells the party angle. It gives parents and organisers a clear route into group demo enquiries, package questions and availability checks.</p>
+          <p>This cabinet sells the group event angle. It gives parents and organisers a clear route into group demo enquiries, package questions and availability checks.</p>
           <div class="stats">
             <div class="stat"><small>Best use</small><strong>Group traffic</strong></div>
             <div class="stat"><small>Strongest channel</small><strong>Flyers and social posts</strong></div>
           </div>
           <div class="list">
-            <div class="list-item"><div class="list-ic">🎂</div><div><b>Party focus</b><span>Promote special packages without cluttering the main website.</span></div></div>
+            <div class="list-item"><div class="list-ic">🎂</div><div><b>Event focus</b><span>Promote special packages without cluttering the main website.</span></div></div>
             <div class="list-item"><div class="list-ic">👥</div><div><b>Group conversion</b><span>Capture enquiries from families and organisers faster.</span></div></div>
             <div class="list-item"><div class="list-ic">✨</div><div><b>Memorable</b><span>A much better first impression than a basic contact page.</span></div></div>
           </div>
@@ -297,7 +311,7 @@
           </div>
           <div class="tiny-note">Update <code>CONFIG.partiesUrl</code> to point to the correct group event page or form.</div>`
       },
-      info: {
+      hours: {
         theme: 'scene-hours',
         title: 'Visit info',
         cta: 'Copy info',
@@ -362,7 +376,7 @@
         theme: 'scene-reviews',
         title: 'Social proof',
         cta: 'Open social proof',
-        action: () => openLink(CONFIG.social proofUrl),
+        action: () => openLink(CONFIG.reviewsUrl),
         panel: `
           <p>Social proof matters, especially for new visitors and parents planning a group experience. This cabinet is a reassurance layer.</p>
           <div class="stats">
@@ -377,7 +391,7 @@
             <button class="action-btn primary" data-act="social proof">Open social proof</button>
             <a class="action-btn" href="${CONFIG.websiteUrl}" target="_blank" rel="noopener">Demo website</a>
           </div>
-          <div class="tiny-note">Update <code>CONFIG.social proofUrl</code> to the correct live review destination.</div>`
+          <div class="tiny-note">Update <code>CONFIG.reviewsUrl</code> to the correct live review destination.</div>`
       }
     };
 
@@ -553,12 +567,12 @@
     world.add(particles);
 
     const cabinetData = [
-      {key:'book', title:['BOOK', 'NOW'], label:'Demo demo enquiry', color:0xff4869, accent:0xffcf61, x:-8.8, z:-10.5, rot:0.24},
+      {key:'book', title:['BOOK', 'NOW'], label:'Demo enquiry', color:0xff4869, accent:0xffcf61, x:-8.8, z:-10.5, rot:0.24},
       {key:'info', title:['OPENING', 'HOURS'], label:'Visit info', color:0x74f4ff, accent:0x20c6ff, x:-6.1, z:-17, rot:0.16},
-      {key:'map link', title:['FIND', 'US'], label:'Map link', color:0x46f7a8, accent:0x74f4ff, x:-3.2, z:-23.8, rot:0.08},
-      {key:'group', title:['GROUP', 'PARTIES'], label:'Group events', color:0xffcf61, accent:0xff79d0, x:3.2, z:-23.8, rot:-0.08},
+      {key:'directions', title:['FIND', 'US'], label:'Map link', color:0x46f7a8, accent:0x74f4ff, x:-3.2, z:-23.8, rot:0.08},
+      {key:'birthday', title:['GROUP', 'PARTIES'], label:'Group events', color:0xffcf61, accent:0xff79d0, x:3.2, z:-23.8, rot:-0.08},
       {key:'games', title:['GAMES', 'LIST'], label:'Game vault', color:0x965dff, accent:0x20c6ff, x:6.1, z:-17, rot:-0.16},
-      {key:'social proof', title:['SOCIAL PROOF'], label:'Social proof', color:0xffcf61, accent:0xff4869, x:8.8, z:-10.5, rot:-0.24}
+      {key:'reviews', title:['SOCIAL PROOF'], label:'Social proof', color:0xffcf61, accent:0xff4869, x:8.8, z:-10.5, rot:-0.24}
     ];
 
     const cabinets = [];
@@ -692,7 +706,7 @@
     const shareBtn = document.getElementById('shareBtn');
     const recenterBtn = document.getElementById('recenterBtn');
     const headerBookBtn = document.getElementById('headerBookBtn');
-    headerBookBtn.href = CONFIG.demo enquiryUrl;
+    headerBookBtn.href = CONFIG.bookingUrl;
 
     function openLink(url){
       if (url && url !== '#') window.open(url, '_blank', 'noopener');
@@ -851,7 +865,7 @@
     });
 
     window.addEventListener('keydown', e => {
-      const map = {1:'book',2:'group',3:'info',4:'games',5:'map link',6:'social proof'};
+      const map = {1:'book',2:'birthday',3:'hours',4:'games',5:'directions',6:'reviews'};
       if (map[e.key]) focusScene(map[e.key]);
       if (e.key.toLowerCase() === 'r') recenter();
       if (e.key.toLowerCase() === 'enter' && !started) startBtn.click();
