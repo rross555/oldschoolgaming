@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>OLDSCHOOLGAMING DEMO | Generic 3D Arcade Portal</title>
+  <meta name="description" content="OLDSCHOOLGAMING DEMO. Generic 3D arcade portal demo for arcade venues, gaming bars, entertainment spaces and event-led businesses.">
+  <meta name="theme-color" content="#080a15">
+  <style>
+    :root{
+      --bg:#070913;
+      --panel:rgba(8,11,24,.76);
+      --panel-2:rgba(13,18,36,.88);
+      --line:rgba(255,255,255,.11);
+      --text:#f5f8ff;
+      --muted:#b6bfd8;
+      --red:#ff4869;
+      --blue:#20c6ff;
+      --purple:#965dff;
+      --gold:#ffcf61;
+      --cyan:#74f4ff;
+      --green:#46f7a8;
+      --pink:#ff79d0;
+      --radius:24px;
+      --shadow:0 28px 60px rgba(0,0,0,.48);
+      --safe-top:env(safe-area-inset-top, 0px);
+      --safe-bottom:env(safe-area-inset-bottom, 0px);
+      --active:#20c6ff;
+      --active2:#965dff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:#070913;color:var(--text);overflow:hidden}
+    body.scene-book{--active:var(--red);--active2:var(--gold)}
+    body.scene-group{--active:var(--gold);--active2:var(--pink)}
+    body.scene-hours{--active:var(--cyan);--active2:var(--blue)}
+    body.scene-games{--active:var(--purple);--active2:var(--blue)}
+    body.scene-directions{--active:var(--green);--active2:var(--cyan)}
+    body.scene-reviews{--active:var(--gold);--active2:var(--red)}
+    a{color:inherit;text-decoration:none}
+    button,input{font:inherit}
+    button{cursor:pointer;border:0;color:inherit}
+
+    #app{position:fixed;inset:0;overflow:hidden;background:
+      radial-gradient(circle at 20% 8%, rgba(255,72,105,.16), transparent 26%),
+      radial-gradient(circle at 78% 12%, rgba(32,198,255,.18), transparent 26%),
+      radial-gradient(circle at 50% 86%, rgba(150,93,255,.13), transparent 24%),
+      linear-gradient(180deg,#070913,#0a1020 48%,#070913);
+    }
+    #webgl{position:absolute;inset:0;display:block;z-index:1}
+
+    .scanlines,.noise,.vignette,.hud-glow{position:absolute;inset:0;pointer-events:none;z-index:2}
+    .scanlines{opacity:.1;background:repeating-linear-gradient(180deg,rgba(255,255,255,.09) 0 1px, transparent 1px 4px)}
+    .noise{opacity:.08;mix-blend-mode:screen;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='.75'/%3E%3C/svg%3E")}
+    .vignette{background:radial-gradient(circle at 50% 36%, transparent 35%, rgba(0,0,0,.2) 64%, rgba(0,0,0,.74) 100%)}
+    .hud-glow{background:radial-gradient(circle at 50% 92%, color-mix(in srgb,var(--active) 18%, transparent) 0, transparent 45%)}
+
+    .ui{position:absolute;inset:0;z-index:4;pointer-events:none}
+    .shell{max-width:1440px;height:100%;margin:0 auto;padding:calc(14px + var(--safe-top)) 14px calc(16px + var(--safe-bottom));display:grid;grid-template-rows:auto auto 1fr auto;gap:12px}
+
+    .topbar,.notice,.panel,.quickbar,.intro-card{pointer-events:auto}
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:22px;
+      background:rgba(7,10,20,.72);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 28px rgba(0,0,0,.32)
+    }
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .logo{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-weight:1000;letter-spacing:-.06em;background:linear-gradient(135deg,var(--red),var(--blue));box-shadow:inset 0 0 0 1px rgba(255,255,255,.2),0 0 26px rgba(32,198,255,.24)}
+    .brand-copy strong{display:block;font-size:14px;letter-spacing:.16em;text-transform:uppercase}
+    .brand-copy span{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52vw}
+    .top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .pill{min-height:42px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);display:inline-flex;align-items:center;gap:8px;transition:.18s transform,.18s border-color,.18s background}
+    .pill:hover,.pill:focus-visible{transform:translateY(-1px);border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.09);outline:none}
+    .pill.primary{background:linear-gradient(135deg,var(--red),var(--blue));font-weight:800}
+
+    .notice{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px 15px;border-radius:22px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(90deg,rgba(255,72,105,.78),rgba(255,72,105,.38),rgba(32,198,255,.18));box-shadow:var(--shadow)}
+    .notice strong{font-size:13px;text-transform:uppercase;letter-spacing:.12em}
+    .notice span{font-size:14px}
+
+    .overlay-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;align-items:start;min-height:0}
+    .left-ghost{min-height:1px}
+
+    .panel{
+      justify-self:end;width:min(360px,100%);padding:16px;border-radius:26px;border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg,rgba(11,15,31,.82),rgba(8,11,24,.82));backdrop-filter:blur(14px);box-shadow:var(--shadow)
+    }
+    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+    .kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+    .panel-title{margin:6px 0 0;font-size:clamp(28px,4vw,42px);line-height:.94;letter-spacing:-.04em;text-transform:uppercase;font-weight:1000}
+    .scene-dot{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--active),var(--active2));box-shadow:0 0 24px color-mix(in srgb,var(--active) 44%, transparent)}
+    .panel-body p{margin:0 0 12px;color:var(--muted);line-height:1.6}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+    .stat{padding:12px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+    .stat small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .stat strong{display:block;margin-top:6px;font-size:17px}
+    .list{display:grid;gap:8px;margin:14px 0}
+    .list-item{display:flex;gap:10px;padding:11px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+    .list-ic{width:26px;height:26px;border-radius:10px;background:linear-gradient(135deg,var(--active),var(--active2));display:grid;place-items:center;font-size:12px;font-weight:900;flex:0 0 26px}
+    .list-item b{display:block}
+    .list-item span{display:block;color:var(--muted);font-size:14px;margin-top:3px;line-height:1.45}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .action-btn{padding:12px 15px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-weight:700}
+    .action-btn.primary{background:linear-gradient(135deg,var(--active),var(--active2));color:#081018}
+    .tiny-note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:12px}
+    .games-box{margin-top:16px;padding:13px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+    .games-box input{width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.2);color:#fff;margin-bottom:10px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{padding:9px 11px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:13px}
+
+    .quickbar{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}
+    .quick-card{padding:14px;border-radius:24px;background:rgba(7,10,20,.72);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 28px rgba(0,0,0,.28);pointer-events:auto}
+    .quick-card h3{margin:0 0 12px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#dbe1f7}
+    .action-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+    .quick-btn{padding:14px 12px;border-radius:18px;text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);min-height:78px;display:flex;flex-direction:column;justify-content:space-between;transition:.18s transform,.18s border-color,.18s background}
+    .quick-btn small{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .quick-btn strong{font-size:15px;line-height:1.08}
+    .quick-btn:hover,.quick-btn:focus-visible,.quick-btn.active{transform:translateY(-1px);border-color:color-mix(in srgb,var(--active) 42%, white 12%);background:rgba(255,255,255,.08);outline:none}
+    .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .field label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+    .field input{width:100%;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.2);color:#fff}
+    .price-output{margin-top:12px;padding:14px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+    .price-output strong{display:block;font-size:28px}
+    .price-output span{display:block;color:var(--muted);font-size:14px;margin-top:3px}
+
+    .intro{position:absolute;inset:0;z-index:8;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 30%, rgba(32,198,255,.12), transparent 34%), linear-gradient(180deg,rgba(4,6,12,.74),rgba(7,10,20,.92));backdrop-filter:blur(4px);transition:opacity .4s ease, visibility .4s ease}
+    .intro.hidden{opacity:0;visibility:hidden}
+    .intro-card{max-width:560px;width:100%;padding:28px;border-radius:30px;background:rgba(9,12,24,.86);border:1px solid rgba(255,255,255,.12);box-shadow:var(--shadow);text-align:center}
+    .intro-card .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+    .intro-card h1{margin:10px 0 0;font-size:clamp(42px,9vw,84px);line-height:.9;text-transform:uppercase;letter-spacing:-.05em;font-weight:1000;text-shadow:0 0 18px rgba(255,72,105,.75),0 0 34px rgba(32,198,255,.42)}
+    .intro-card p{color:var(--muted);line-height:1.7;margin:14px 0 0}
+    .start-btn{margin-top:18px;padding:14px 18px;border-radius:999px;background:linear-gradient(135deg,var(--red),var(--blue));font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+    .sub-note{margin-top:12px;font-size:12px;color:var(--muted)}
+
+    .hotspot-hint{position:absolute;left:50%;bottom:126px;transform:translateX(-50%);z-index:4;padding:12px 16px;border-radius:999px;background:rgba(7,10,20,.7);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);box-shadow:0 10px 28px rgba(0,0,0,.28);pointer-events:none;font-size:13px;color:#e9edff;text-align:center;max-width:90vw}
+    .hotspot-hint b{letter-spacing:.14em;text-transform:uppercase}
+
+    @media (max-width:1180px){
+      .overlay-grid{grid-template-columns:1fr}
+      .panel{justify-self:stretch;width:100%}
+      .quickbar{grid-template-columns:1fr}
+      .action-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
+    @media (max-width:760px){
+      .topbar{padding:12px}
+      .brand-copy span{max-width:34vw}
+      .top-actions .pill:not(.primary){display:none}
+      .notice{padding:12px 14px}
+      .stats,.price-grid{grid-template-columns:1fr}
+      .action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .quick-btn{min-height:72px}
+      .hotspot-hint{bottom:182px;font-size:12px}
+    }
+  </style>
+</head>
+<body class="scene-book">
+  <div id="app">
+    <canvas id="webgl"></canvas>
+    <div class="scanlines"></div>
+    <div class="noise"></div>
+    <div class="vignette"></div>
+    <div class="hud-glow"></div>
+
+    <div class="ui">
+      <div class="shell">
+        <header class="topbar">
+          <div class="brand">
+            <div class="logo">RR</div>
+            <div class="brand-copy">
+              <strong>OLDSCHOOLGAMING DEMO</strong>
+              <span>Generic 3D motion portal concept for arcade venues, gaming bars and entertainment brands</span>
+            </div>
+          </div>
+          <div class="top-actions">
+            <button class="pill" id="soundBtn" aria-pressed="false">🔊 Sound Off</button>
+            <button class="pill" id="shareBtn">↗ Share</button>
+            <button class="pill" id="recenterBtn">◎ Recenter</button>
+            <a class="pill primary" id="headerBookBtn" href="#" target="_blank" rel="noopener">Demo Booking</a>
+          </div>
+        </header>
+
+        <div class="notice">
+          <strong>GENERIC ARCADE DEMO</strong>
+          <span>Tap a cabinet in the 3D arcade. All venue details, links and wording are placeholder demo content.</span>
+        </div>
+
+        <div class="overlay-grid">
+          <div class="left-ghost"></div>
+          <aside class="panel" id="detailPanel">
+            <div class="panel-head">
+              <div>
+                <div class="kicker">Selected cabinet</div>
+                <h2 class="panel-title" id="panelTitle">Demo demo enquiry</h2>
+              </div>
+              <div class="scene-dot"></div>
+            </div>
+            <div class="panel-body" id="panelBody"></div>
+          </aside>
+        </div>
+
+        <div class="quickbar">
+          <section class="quick-card">
+            <h3>Quick Actions</h3>
+            <div class="action-grid">
+              <button class="quick-btn active" data-scene="book"><small>Cabinet 1</small><strong>Demo Booking</strong></button>
+              <button class="quick-btn" data-scene="group"><small>Cabinet 2</small><strong>Group Events</strong></button>
+              <button class="quick-btn" data-scene="hours"><small>Cabinet 3</small><strong>Visit Info</strong></button>
+              <button class="quick-btn" data-scene="games"><small>Cabinet 4</small><strong>Game Vault</strong></button>
+              <button class="quick-btn" data-scene="map link"><small>Cabinet 5</small><strong>Map link</strong></button>
+              <button class="quick-btn" data-scene="social proof"><small>Cabinet 6</small><strong>Social proof</strong></button>
+            </div>
+          </section>
+          <section class="quick-card">
+            <h3>Demo Use Case</h3>
+            <div class="stats">
+              <div class="stat"><small>Designed for</small><strong>Arcade venues</strong></div>
+              <div class="stat"><small>Traffic source</small><strong>QR and social links</strong></div>
+            </div>
+            <div class="list">
+              <div class="list-item"><div class="list-ic">3D</div><div><b>Immersive front desk</b><span>Users enter a branded arcade world instead of a flat landing page.</span></div></div>
+              <div class="list-item"><div class="list-ic">CTA</div><div><b>Action focused</b><span>Each cabinet routes to the right action without using any real venue details.</span></div></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotspot-hint"><b>Tip</b> Drag to orbit slightly, tap glowing cabinets to explore, or press keys 1 to 6.</div>
+
+    <div class="intro" id="intro">
+      <div class="intro-card">
+        <div class="eyebrow">ClientCapture motion portal demo</div>
+        <h1>OldSchool<br>Gaming</h1>
+        <p>Option 2 is a true 3D arcade portal demo. It simulates entering a neon arcade world and selecting real action points inside the space.</p>
+        <button class="start-btn" id="startBtn">Press Start</button>
+        <div class="sub-note">Use touch or mouse to explore. Sound can be toggled on or off.</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.165.0/build/three.module.js';
+
+    const CONFIG = {
+      demo enquiryUrl: '#',
+      partiesUrl: '#',
+      mapsUrl: '#',
+      social proofUrl: '#',
+      websiteUrl: '#',
+      gamesUrl: '#',
+      shareUrl: window.location.href,};
+
+    const GAMES = [
+      'Bubble Bobble','Double Dragon','The Simpsons','Teenage Mutant Ninja Turtles','Sega Rally','R-Type','Arkanoid','Time Crisis 3','Mortal Kombat','Street Fighter II','Tekken','Guitar Hero'
+    ];
+
+    const SCENES = {
+      book: {
+        theme: 'scene-book',
+        title: 'Demo demo enquiry',
+        cta: 'Go to demo enquiry',
+        action: () => openLink(CONFIG.demo enquiryUrl),
+        panel: `
+          <p>Make the main conversion route obvious. This cabinet is the fastest path into the demo enquiry flow and works well from QR posters, Facebook traffic and Instagram bio links.</p>
+          <div class="stats">
+            <div class="stat"><small>Main goal</small><strong>Fast conversion</strong></div>
+            <div class="stat"><small>Best source</small><strong>Social and QR scans</strong></div>
+          </div>
+          <div class="list">
+            <div class="list-item"><div class="list-ic">01</div><div><b>Primary CTA</b><span>Put the live demo enquiry destination here for quick action.</span></div></div>
+            <div class="list-item"><div class="list-ic">02</div><div><b>High intent traffic</b><span>Perfect for people already planning a visit.</span></div></div>
+            <div class="list-item"><div class="list-ic">03</div><div><b>One tap route</b><span>Keep friction low and the journey short.</span></div></div>
+          </div>
+          <div class="actions">
+            <button class="action-btn primary" data-act="book">Open demo enquiry</button>
+            <a class="action-btn" href="${CONFIG.websiteUrl}" target="_blank" rel="noopener">Demo website</a>
+          </div>
+          <div class="tiny-note">Update <code>CONFIG.demo enquiryUrl</code> in the file before launch.</div>`
+      },
+      group: {
+        theme: 'scene-group',
+        title: 'Group events',
+        cta: 'Party enquiry',
+        action: () => openLink(CONFIG.partiesUrl),
+        panel: `
+          <p>This cabinet sells the party angle. It gives parents and organisers a clear route into group demo enquiries, package questions and availability checks.</p>
+          <div class="stats">
+            <div class="stat"><small>Best use</small><strong>Group traffic</strong></div>
+            <div class="stat"><small>Strongest channel</small><strong>Flyers and social posts</strong></div>
+          </div>
+          <div class="list">
+            <div class="list-item"><div class="list-ic">🎂</div><div><b>Party focus</b><span>Promote special packages without cluttering the main website.</span></div></div>
+            <div class="list-item"><div class="list-ic">👥</div><div><b>Group conversion</b><span>Capture enquiries from families and organisers faster.</span></div></div>
+            <div class="list-item"><div class="list-ic">✨</div><div><b>Memorable</b><span>A much better first impression than a basic contact page.</span></div></div>
+          </div>
+          <div class="actions">
+            <button class="action-btn primary" data-act="group">Open party info</button>
+            <a class="action-btn" href="${CONFIG.websiteUrl}" target="_blank" rel="noopener">Demo website</a>
+          </div>
+          <div class="tiny-note">Update <code>CONFIG.partiesUrl</code> to point to the correct group event page or form.</div>`
+      },
+      info: {
+        theme: 'scene-hours',
+        title: 'Visit info',
+        cta: 'Copy info',
+        action: () => copyText('OLDSCHOOLGAMING DEMO visit info: placeholder schedule details for a generic arcade portal.'),
+        panel: `
+          <p>Visitors often just want the simple facts. This cabinet highlights the visit info and the price in a clear and branded way.</p>
+          <div class="stats">
+            <div class="stat"><small>placeholder schedule</small><strong>Demo value</strong></div>
+            <div class="stat"><small>placeholder schedule</small><strong>Demo value</strong></div>
+            <div class="stat"><small>placeholder schedule</small><strong>Demo value</strong></div>
+            <div class="stat"><small>Rate</small><strong>demo value</strong></div>
+          </div>
+          <div class="actions">
+            <button class="action-btn primary" data-act="info">Copy info</button>
+            <a class="action-btn" href="${CONFIG.websiteUrl}" target="_blank" rel="noopener">Demo website</a>
+          </div>
+          <div class="tiny-note">These values are demo placeholders. Replace them with the real venue details before final launch.</div>`
+      },
+      games: {
+        theme: 'scene-games',
+        title: 'Game vault',
+        cta: 'Open games page',
+        action: () => openLink(CONFIG.gamesUrl),
+        panel: `
+          <p>Nostalgia sells. This cabinet lets visitors search the main game lineup and builds anticipation before they arrive.</p>
+          <div class="stats">
+            <div class="stat"><small>Main hook</small><strong>Curiosity</strong></div>
+            <div class="stat"><small>User type</small><strong>Arcade fans</strong></div>
+          </div>
+          <div class="games-box">
+            <input id="gameSearch" type="text" placeholder="Search games, for example Tekken">
+            <div class="chips" id="gameChips"></div>
+          </div>
+          <div class="actions">
+            <button class="action-btn primary" data-act="games">Open games page</button>
+            <button class="action-btn" data-act="showGames">Show all</button>
+          </div>
+          <div class="tiny-note">You can keep this quick list inside the portal or point it to a proper games page.</div>`
+      },
+      directions: {
+        theme: 'scene-directions',
+        title: 'Map link',
+        cta: 'Open demo map',
+        action: () => openLink(CONFIG.mapsUrl),
+        panel: `
+          <p>This cabinet is a generic placeholder for a map or travel link. Add the real destination only when the demo is adapted for a real client.</p>
+          <div class="stats">
+            <div class="stat"><small>Destination</small><strong>Placeholder only</strong></div>
+            <div class="stat"><small>Action</small><strong>Map or travel link</strong></div>
+          </div>
+          <div class="list">
+            <div class="list-item"><div class="list-ic">📍</div><div><b>Map route</b><span>Designed for first time visitors, families and event groups.</span></div></div>
+            <div class="list-item"><div class="list-ic">↗</div><div><b>Client ready</b><span>Swap in a real Google Maps link after client approval.</span></div></div>
+          </div>
+          <div class="actions">
+            <button class="action-btn primary" data-act="directions">Open demo map</button>
+            <button class="action-btn" data-act="copyAddress">Copy demo address</button>
+          </div>
+          <div class="tiny-note">This is generic demo content only.</div>`
+      },
+      reviews: {
+        theme: 'scene-reviews',
+        title: 'Social proof',
+        cta: 'Open social proof',
+        action: () => openLink(CONFIG.social proofUrl),
+        panel: `
+          <p>Social proof matters, especially for new visitors and parents planning a group experience. This cabinet is a reassurance layer.</p>
+          <div class="stats">
+            <div class="stat"><small>Main job</small><strong>Build trust</strong></div>
+            <div class="stat"><small>Best for</small><strong>First time visitors</strong></div>
+          </div>
+          <div class="list">
+            <div class="list-item"><div class="list-ic">★</div><div><b>Public proof</b><span>Link this to Google social proof, Facebook social proof or testimonials.</span></div></div>
+            <div class="list-item"><div class="list-ic">👍</div><div><b>Conversion support</b><span>Great for visitors sitting on the fence.</span></div></div>
+          </div>
+          <div class="actions">
+            <button class="action-btn primary" data-act="social proof">Open social proof</button>
+            <a class="action-btn" href="${CONFIG.websiteUrl}" target="_blank" rel="noopener">Demo website</a>
+          </div>
+          <div class="tiny-note">Update <code>CONFIG.social proofUrl</code> to the correct live review destination.</div>`
+      }
+    };
+
+    const canvas = document.getElementById('webgl');
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050711, 0.022);
+
+    const camera = new THREE.PerspectiveCamera(48, window.innerWidth/window.innerHeight, 0.1, 200);
+    camera.position.set(0, 3.4, 24);
+
+    const world = new THREE.Group();
+    scene.add(world);
+
+    const ambient = new THREE.AmbientLight(0xaab0ff, 0.95);
+    scene.add(ambient);
+
+    const topLight = new THREE.PointLight(0x31ccff, 24, 90, 2);
+    topLight.position.set(0, 14, 8);
+    scene.add(topLight);
+
+    const pinkLight = new THREE.PointLight(0xff4f8f, 18, 80, 2);
+    pinkLight.position.set(-10, 6, -6);
+    scene.add(pinkLight);
+
+    const goldLight = new THREE.PointLight(0xffd768, 12, 60, 2);
+    goldLight.position.set(10, 4, -4);
+    scene.add(goldLight);
+
+    function createTextTexture(lines, options = {}) {
+      const width = options.width || 1024;
+      const height = options.height || 512;
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0,0,width,height);
+      grad.addColorStop(0, options.bg1 || 'rgba(10,14,28,0.95)');
+      grad.addColorStop(1, options.bg2 || 'rgba(6,9,18,0.98)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,width,height);
+
+      ctx.strokeStyle = options.border || 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(18,18,width-36,height-36);
+
+      ctx.shadowBlur = 28;
+      ctx.shadowColor = options.glow || '#21c6ff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const baseSize = options.size || Math.floor(height * 0.26);
+      ctx.font = `900 ${baseSize}px Arial`;
+      ctx.fillStyle = options.color || '#ffffff';
+
+      if (!Array.isArray(lines)) lines = [lines];
+      const totalHeight = lines.length * (baseSize * 0.9);
+      lines.forEach((line, i) => {
+        const y = height/2 - totalHeight/2 + i * (baseSize * 0.95) + baseSize*0.45;
+        ctx.fillText(line, width/2, y);
+      });
+      if (options.sub){
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = options.subGlow || '#ff567c';
+        ctx.font = `700 ${Math.floor(baseSize * 0.34)}px Arial`;
+        ctx.fillStyle = options.subColor || '#d8e7ff';
+        ctx.fillText(options.sub, width/2, height - 52);
+      }
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function createNeonMaterial(color, emissiveStrength = 2.2) {
+      return new THREE.MeshStandardMaterial({
+        color,
+        emissive: new THREE.Color(color),
+        emissiveIntensity: emissiveStrength,
+        metalness: 0.3,
+        roughness: 0.35
+      });
+    }
+
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(90, 80),
+      new THREE.MeshStandardMaterial({color:0x060914, roughness:0.55, metalness:0.15})
+    );
+    floor.rotation.x = -Math.PI/2;
+    floor.position.y = -1.1;
+    world.add(floor);
+
+    const grid = new THREE.GridHelper(90, 60, 0x21c6ff, 0xff4869);
+    grid.position.y = -1.04;
+    grid.material.opacity = 0.32;
+    grid.material.transparent = true;
+    world.add(grid);
+
+    const floorGlow = new THREE.Mesh(
+      new THREE.CircleGeometry(18, 64),
+      new THREE.MeshBasicMaterial({color:0x1abfff, transparent:true, opacity:0.1})
+    );
+    floorGlow.rotation.x = -Math.PI/2;
+    floorGlow.position.y = -1.02;
+    world.add(floorGlow);
+
+    const tunnelGroup = new THREE.Group();
+    world.add(tunnelGroup);
+    for (let i = 0; i < 10; i++) {
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(12 - i*0.12, 0.18, 20, 140),
+        createNeonMaterial(i % 2 === 0 ? 0x20c6ff : 0xff4869, 1.8)
+      );
+      ring.rotation.x = Math.PI/2;
+      ring.position.set(0, 5.4, -i * 4.2);
+      tunnelGroup.add(ring);
+    }
+
+    const sideGlowGeo = new THREE.PlaneGeometry(2, 22);
+    const leftGlow = new THREE.Mesh(sideGlowGeo, new THREE.MeshBasicMaterial({color:0xff4869, transparent:true, opacity:0.14}));
+    leftGlow.position.set(-13, 5, -14);
+    world.add(leftGlow);
+    const rightGlow = new THREE.Mesh(sideGlowGeo, new THREE.MeshBasicMaterial({color:0x20c6ff, transparent:true, opacity:0.14}));
+    rightGlow.position.set(13, 5, -14);
+    world.add(rightGlow);
+
+    const signTex = createTextTexture(['OLDSCHOOL', 'GAMING'], {
+      width: 1400,
+      height: 900,
+      color: '#ff4b67',
+      glow: '#ff4b67',
+      sub: 'GENERIC DEMO • ARCADES, CONSOLES AND MORE',
+      subGlow: '#20c6ff'
+    });
+    const signMat = new THREE.MeshBasicMaterial({map:signTex, transparent:true});
+    const signMesh = new THREE.Mesh(new THREE.PlaneGeometry(9.8, 6.3), signMat);
+    signMesh.position.set(0, 6.6, -36);
+    world.add(signMesh);
+
+    const backPanel = new THREE.Mesh(
+      new THREE.PlaneGeometry(20, 12),
+      new THREE.MeshStandardMaterial({color:0x0c1020, emissive:0x090d18, emissiveIntensity:1})
+    );
+    backPanel.position.set(0, 4.7, -38.2);
+    world.add(backPanel);
+
+    const starsGeo = new THREE.BufferGeometry();
+    const starsCount = 900;
+    const pos = new Float32Array(starsCount * 3);
+    for (let i = 0; i < starsCount; i++) {
+      pos[i*3] = (Math.random() - 0.5) * 120;
+      pos[i*3 + 1] = Math.random() * 36 + 2;
+      pos[i*3 + 2] = (Math.random() - 0.5) * 120;
+    }
+    starsGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const stars = new THREE.Points(starsGeo, new THREE.PointsMaterial({color:0xffffff, size:0.08, transparent:true, opacity:0.7}));
+    scene.add(stars);
+
+    const particlesGeo = new THREE.BufferGeometry();
+    const pCount = 220;
+    const pPos = new Float32Array(pCount * 3);
+    const pSpeed = [];
+    for (let i = 0; i < pCount; i++) {
+      pPos[i*3] = (Math.random() - 0.5) * 20;
+      pPos[i*3 + 1] = Math.random() * 8 + 1;
+      pPos[i*3 + 2] = -Math.random() * 36;
+      pSpeed.push(0.002 + Math.random() * 0.007);
+    }
+    particlesGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+    const particles = new THREE.Points(particlesGeo, new THREE.PointsMaterial({color:0xffcf61, size:0.12, transparent:true, opacity:0.8}));
+    world.add(particles);
+
+    const cabinetData = [
+      {key:'book', title:['BOOK', 'NOW'], label:'Demo demo enquiry', color:0xff4869, accent:0xffcf61, x:-8.8, z:-10.5, rot:0.24},
+      {key:'info', title:['OPENING', 'HOURS'], label:'Visit info', color:0x74f4ff, accent:0x20c6ff, x:-6.1, z:-17, rot:0.16},
+      {key:'map link', title:['FIND', 'US'], label:'Map link', color:0x46f7a8, accent:0x74f4ff, x:-3.2, z:-23.8, rot:0.08},
+      {key:'group', title:['GROUP', 'PARTIES'], label:'Group events', color:0xffcf61, accent:0xff79d0, x:3.2, z:-23.8, rot:-0.08},
+      {key:'games', title:['GAMES', 'LIST'], label:'Game vault', color:0x965dff, accent:0x20c6ff, x:6.1, z:-17, rot:-0.16},
+      {key:'social proof', title:['SOCIAL PROOF'], label:'Social proof', color:0xffcf61, accent:0xff4869, x:8.8, z:-10.5, rot:-0.24}
+    ];
+
+    const cabinets = [];
+    const pickables = [];
+
+    function makeCabinetTexture(data) {
+      return createTextTexture(data.title, {
+        width: 820,
+        height: 540,
+        color: '#ffffff',
+        glow: '#' + data.color.toString(16).padStart(6,'0'),
+        bg1: 'rgba(18,22,42,.98)',
+        bg2: 'rgba(8,10,22,.98)',
+        sub: data.label.toUpperCase(),
+        subGlow: '#' + data.accent.toString(16).padStart(6,'0')
+      });
+    }
+
+    function createCabinet(item) {
+      const group = new THREE.Group();
+      group.position.set(item.x, 1.8, item.z);
+      group.rotation.y = item.rot;
+      group.userData.sceneKey = item.key;
+
+      const body = new THREE.Mesh(
+        new THREE.BoxGeometry(2.15, 4.6, 1.7),
+        new THREE.MeshStandardMaterial({color:0x171d33, metalness:0.42, roughness:0.4})
+      );
+      body.castShadow = true;
+      body.receiveShadow = true;
+      body.userData.sceneKey = item.key;
+      group.add(body);
+
+      const marquee = new THREE.Mesh(
+        new THREE.BoxGeometry(2.05, 0.62, 0.3),
+        createNeonMaterial(item.color, 1.4)
+      );
+      marquee.position.set(0, 2.06, 0.58);
+      marquee.userData.sceneKey = item.key;
+      group.add(marquee);
+
+      const screen = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.55, 1.45),
+        new THREE.MeshBasicMaterial({map: makeCabinetTexture(item), transparent:false})
+      );
+      screen.position.set(0, 0.72, 0.88);
+      screen.userData.sceneKey = item.key;
+      group.add(screen);
+
+      const bezel = new THREE.Mesh(
+        new THREE.BoxGeometry(1.75, 1.65, 0.12),
+        new THREE.MeshStandardMaterial({color:0x0a0d18, emissive:item.color, emissiveIntensity:0.26})
+      );
+      bezel.position.set(0, 0.72, 0.78);
+      bezel.userData.sceneKey = item.key;
+      group.add(bezel);
+
+      const controlDeck = new THREE.Mesh(
+        new THREE.BoxGeometry(1.85, 0.44, 0.92),
+        new THREE.MeshStandardMaterial({color:0x10162a, metalness:0.36, roughness:0.45})
+      );
+      controlDeck.position.set(0, -0.8, 0.62);
+      controlDeck.rotation.x = -0.28;
+      controlDeck.userData.sceneKey = item.key;
+      group.add(controlDeck);
+
+      const stickBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.28, 16), createNeonMaterial(item.color, 1));
+      stickBase.position.set(-0.38, -0.58, 0.96);
+      group.add(stickBase);
+      const stickTop = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), createNeonMaterial(item.color, 1.4));
+      stickTop.position.set(-0.38, -0.36, 0.96);
+      group.add(stickTop);
+      const button1 = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.08, 16), createNeonMaterial(item.accent, 1.6));
+      button1.rotation.x = Math.PI/2;
+      button1.position.set(0.28, -0.54, 0.98);
+      group.add(button1);
+      const button2 = button1.clone();
+      button2.position.x = 0.58;
+      group.add(button2);
+      const button3 = button1.clone();
+      button3.position.x = 0.88;
+      group.add(button3);
+
+      const baseGlow = new THREE.Mesh(new THREE.CircleGeometry(1.3, 32), new THREE.MeshBasicMaterial({color:item.color, transparent:true, opacity:0.18}));
+      baseGlow.rotation.x = -Math.PI/2;
+      baseGlow.position.set(0, -1.05, 0);
+      group.add(baseGlow);
+
+      const floorMirror = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.7), new THREE.MeshBasicMaterial({color:item.color, transparent:true, opacity:0.14}));
+      floorMirror.rotation.x = -Math.PI/2;
+      floorMirror.position.set(0, -1.03, 0.4);
+      group.add(floorMirror);
+
+      group.userData.selectables = [body, marquee, screen, bezel, controlDeck];
+      group.userData.basePos = group.position.clone();
+      group.userData.glow = baseGlow;
+      group.userData.screen = screen;
+      group.userData.item = item;
+      group.userData.label = item.label;
+      cabinets.push(group);
+      pickables.push(body, marquee, screen, bezel, controlDeck);
+      world.add(group);
+    }
+
+    cabinetData.forEach(createCabinet);
+
+    const pointer = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+    const targetLook = new THREE.Vector3(0, 4.6, -22);
+    const currentLook = new THREE.Vector3(0, 4.6, -22);
+    const defaultCameraPos = new THREE.Vector3(0, 3.8, 18.5);
+    const targetCameraPos = defaultCameraPos.clone();
+    let introProgress = 0;
+    let introRunning = false;
+    let started = false;
+    let currentSceneKey = 'book';
+    let hoverSceneKey = null;
+    let drag = {active:false, x:0, y:0, yaw:0, pitch:0};
+    let orbitYaw = 0;
+    let orbitPitch = 0;
+    let soundOn = false;
+    let audioCtx = null;
+
+    const introEl = document.getElementById('intro');
+    const startBtn = document.getElementById('startBtn');
+    const panelTitle = document.getElementById('panelTitle');
+    const panelBody = document.getElementById('panelBody');
+    const quickBtns = [...document.querySelectorAll('.quick-btn')];
+    const infoInput = document.getElementById('info');
+    const soundBtn = document.getElementById('soundBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const recenterBtn = document.getElementById('recenterBtn');
+    const headerBookBtn = document.getElementById('headerBookBtn');
+    headerBookBtn.href = CONFIG.demo enquiryUrl;
+
+    function openLink(url){
+      if (url && url !== '#') window.open(url, '_blank', 'noopener');
+    }
+    async function copyText(text){
+      try{ await navigator.clipboard.writeText(text); playTone(820,.08,'triangle'); }
+      catch(e){}
+    }
+
+    function playTone(freq = 520, duration = 0.08, type = 'square') {
+      if (!soundOn) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.value = 0.0001;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+        gain.gain.exponentialRampToValueAtTime(0.08, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        osc.start(now);
+        osc.stop(now + duration + 0.02);
+      } catch(e){}
+    }
+
+    function renderGames(filter = '') {
+      const chips = document.getElementById('gameChips');
+      if (!chips) return;
+      const q = filter.trim().toLowerCase();
+      const items = GAMES.filter(g => g.toLowerCase().includes(q));
+      chips.innerHTML = items.length ? items.map(g => `<span class="chip">${g}</span>`).join('') : '<span class="chip">No matches found</span>';
+    }
+
+    function bindPanelActions(sceneKey) {
+      panelBody.querySelectorAll('[data-act]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const act = btn.getAttribute('data-act');
+          if (act === 'showGames') {
+            renderGames('');
+            const search = document.getElementById('gameSearch');
+            if (search) search.value = '';
+            playTone(720,.08);
+          } else if (act === 'copyAddress') {
+            copyText('OLDSCHOOLGAMING Demo, sample venue address');
+          } else {
+            SCENES[sceneKey].action();
+          }
+        });
+      });
+
+      if (sceneKey === 'games') {
+        renderGames('');
+        const search = document.getElementById('gameSearch');
+        if (search) search.addEventListener('input', e => renderGames(e.target.value));
+      }
+    }
+
+    function focusScene(sceneKey) {
+      const sceneMeta = SCENES[sceneKey];
+      if (!sceneMeta) return;
+      currentSceneKey = sceneKey;
+      document.body.className = sceneMeta.theme;
+      panelTitle.textContent = sceneMeta.title;
+      panelBody.innerHTML = sceneMeta.panel;
+      bindPanelActions(sceneKey);
+      quickBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.scene === sceneKey));
+      const cab = cabinets.find(c => c.userData.sceneKey === sceneKey);
+      if (cab) {
+        const side = Math.sign(cab.position.x) || 1;
+        targetCameraPos.set(cab.position.x - side * 2.6, cab.position.y + 1.7, cab.position.z + 5.8);
+        targetLook.set(cab.position.x, cab.position.y + 1.1, cab.position.z + 0.6);
+      }
+      playTone(480 + Object.keys(SCENES).indexOf(sceneKey) * 55, .08, 'square');
+    }
+
+    function recenter() {
+      targetCameraPos.copy(defaultCameraPos);
+      targetLook.set(0, 4.5, -22);
+      playTone(690,.08,'triangle');
+    }
+
+    quickBtns.forEach(btn => btn.addEventListener('click', () => focusScene(btn.dataset.scene)));
+    recenterBtn.addEventListener('click', recenter);
+
+    soundBtn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundBtn.setAttribute('aria-pressed', String(soundOn));
+      soundBtn.textContent = soundOn ? '🔊 Sound On' : '🔊 Sound Off';
+      playTone(soundOn ? 840 : 420, .08);
+    });
+    shareBtn.addEventListener('click', async () => {
+      const payload = {title:document.title, text:'OLDSCHOOLGAMING DEMO 3D portal', url:CONFIG.shareUrl};
+      try {
+        if (navigator.share) await navigator.share(payload);
+        else {
+          await navigator.clipboard.writeText(CONFIG.shareUrl);
+          shareBtn.textContent = 'Link Copied';
+          setTimeout(() => shareBtn.textContent = '↗ Share', 1200);
+        }
+      } catch(e){}
+      playTone(720,.08,'triangle');
+    });
+
+    startBtn.addEventListener('click', () => {
+      introEl.classList.add('hidden');
+      started = true;
+      introRunning = true;
+      soundOn = true;
+      soundBtn.setAttribute('aria-pressed','true');
+      soundBtn.textContent = '🔊 Sound On';
+      playTone(540,.06); setTimeout(() => playTone(760,.07), 70); setTimeout(() => playTone(980,.08), 140);
+    });
+
+    function onPointerMove(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    function pick(clientX, clientY) {
+      onPointerMove(clientX, clientY);
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(pickables, false);
+      if (hits[0]) {
+        const key = hits[0].object.userData.sceneKey;
+        if (key) focusScene(key);
+      }
+    }
+
+    window.addEventListener('pointermove', e => {
+      onPointerMove(e.clientX, e.clientY);
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(pickables, false);
+      hoverSceneKey = hits[0]?.object?.userData?.sceneKey || null;
+      canvas.style.cursor = hoverSceneKey ? 'pointer' : 'default';
+      if (drag.active) {
+        const dx = (e.clientX - drag.x) / window.innerWidth;
+        const dy = (e.clientY - drag.y) / window.innerHeight;
+        orbitYaw = drag.yaw + dx * 1.2;
+        orbitPitch = THREE.MathUtils.clamp(drag.pitch + dy * .55, -0.22, 0.22);
+      }
+    });
+    window.addEventListener('pointerdown', e => {
+      drag.active = true;
+      drag.x = e.clientX;
+      drag.y = e.clientY;
+      drag.yaw = orbitYaw;
+      drag.pitch = orbitPitch;
+    });
+    window.addEventListener('pointerup', e => {
+      if (drag.active && Math.abs(e.clientX - drag.x) < 6 && Math.abs(e.clientY - drag.y) < 6) pick(e.clientX, e.clientY);
+      drag.active = false;
+    });
+
+    window.addEventListener('keydown', e => {
+      const map = {1:'book',2:'group',3:'info',4:'games',5:'map link',6:'social proof'};
+      if (map[e.key]) focusScene(map[e.key]);
+      if (e.key.toLowerCase() === 'r') recenter();
+      if (e.key.toLowerCase() === 'enter' && !started) startBtn.click();
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    });
+
+    focusScene('book');
+
+    const clock = new THREE.Clock();
+    function renderLoop() {
+      requestAnimationFrame(renderLoop);
+      const t = clock.getElapsedTime();
+      const dt = clock.getDelta();
+
+      if (introRunning) {
+        introProgress = Math.min(1, introProgress + dt * 0.38);
+        const eased = 1 - Math.pow(1 - introProgress, 3);
+        camera.position.set(0, 3.8 - eased * 0.1, 24 - eased * 5.8);
+        if (introProgress >= 1) {
+          introRunning = false;
+          targetCameraPos.copy(defaultCameraPos);
+          targetLook.set(0,4.5,-22);
+        }
+      }
+
+      const desiredCam = targetCameraPos.clone().add(new THREE.Vector3(orbitYaw * 2.2, orbitPitch * 1.1, 0));
+      camera.position.lerp(desiredCam, introRunning ? 0.06 : 0.08);
+      currentLook.lerp(targetLook, introRunning ? 0.06 : 0.08);
+      camera.lookAt(currentLook);
+
+      world.position.y = Math.sin(t * 0.45) * 0.06;
+      tunnelGroup.rotation.z = Math.sin(t * 0.22) * 0.02;
+      signMesh.position.y = 6.6 + Math.sin(t * 1.4) * 0.18;
+      stars.rotation.y += 0.00008;
+
+      cabinets.forEach((cab, index) => {
+        const isActive = cab.userData.sceneKey === currentSceneKey;
+        const isHover = cab.userData.sceneKey === hoverSceneKey;
+        const targetY = cab.userData.basePos.y + (isActive ? 0.28 : isHover ? 0.14 : 0) + Math.sin(t * 1.35 + index * 0.7) * 0.03;
+        cab.position.y = THREE.MathUtils.lerp(cab.position.y, targetY, 0.1);
+        cab.rotation.y = THREE.MathUtils.lerp(cab.rotation.y, cab.userData.item.rot + (isActive ? (cab.userData.item.x < 0 ? 0.03 : -0.03) : 0), 0.1);
+        const s = isActive ? 1.08 : isHover ? 1.04 : 1;
+        cab.scale.lerp(new THREE.Vector3(s,s,s), 0.12);
+        cab.userData.glow.material.opacity = THREE.MathUtils.lerp(cab.userData.glow.material.opacity, isActive ? 0.38 : isHover ? 0.24 : 0.18, 0.1);
+      });
+
+      const attr = particles.geometry.attributes.position;
+      for (let i = 0; i < pCount; i++) {
+        let z = attr.array[i*3 + 2];
+        z += pSpeed[i];
+        if (z > 4) z = -38;
+        attr.array[i*3 + 2] = z;
+      }
+      attr.needsUpdate = true;
+
+      renderer.render(scene, camera);
+    }
+
+    renderLoop();
+  </script>
+</body>
+</html>
