@@ -174,6 +174,65 @@
       .m-benefits span{display:block;color:var(--muted);font-size:13px;line-height:1.4;margin-top:4px}
     }
 
+  
+    /* V5 bulletproof mobile layer */
+    .m-arrows{display:none}
+    @media (max-width:760px){
+      body{overflow:auto !important}
+      #app{position:relative !important;min-height:100vh !important;overflow:visible !important}
+      #webgl{
+        position:fixed !important;
+        inset:0 !important;
+        width:100vw !important;
+        height:100vh !important;
+        z-index:0 !important;
+        pointer-events:none !important;
+        opacity:.42 !important;
+      }
+      .scanlines,.noise,.vignette,.hud-glow{z-index:1 !important;pointer-events:none !important}
+      .ui,.hotspot-hint,.mobile-cta{display:none !important}
+      .mobile-app{
+        display:block !important;
+        position:relative !important;
+        z-index:50 !important;
+        pointer-events:auto !important;
+        visibility:visible !important;
+        opacity:1 !important;
+        transform:none !important;
+      }
+      .m-hero,.m-section,.m-sticky{
+        position:relative !important;
+        z-index:51 !important;
+      }
+      .m-swipe{
+        overflow-x:auto !important;
+        scroll-snap-type:x mandatory !important;
+        display:flex !important;
+        gap:12px !important;
+      }
+      .m-slide{
+        flex:0 0 84% !important;
+        scroll-snap-align:center !important;
+      }
+      .m-arrows{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:10px;
+        padding:0 16px 12px;
+      }
+      .m-arrow-btn{
+        min-height:50px;
+        border-radius:16px;
+        background:rgba(255,255,255,.08);
+        border:1px solid rgba(255,255,255,.13);
+        color:#fff;
+        font-weight:900;
+      }
+    }
+    @media (min-width:761px){
+      .mobile-app{display:none !important}
+    }
+
   </style>
 </head>
 <body class="scene-home">
