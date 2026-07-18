@@ -233,10 +233,52 @@
       .mobile-app{display:none !important}
     }
 
+  
+    /* V6 permanent mobile nav arrows */
+    .m-float-nav{display:none}
+    @media (max-width:760px){
+      .m-float-nav{
+        display:block !important;
+        position:fixed !important;
+        left:0 !important;
+        right:0 !important;
+        top:52% !important;
+        transform:translateY(-50%) !important;
+        z-index:9999 !important;
+        pointer-events:none !important;
+      }
+      .m-float-arrow{
+        position:absolute !important;
+        top:0 !important;
+        width:54px !important;
+        height:74px !important;
+        border-radius:22px !important;
+        border:1px solid rgba(255,255,255,.18) !important;
+        background:rgba(7,10,20,.86) !important;
+        color:#fff !important;
+        font-size:46px !important;
+        line-height:1 !important;
+        font-weight:900 !important;
+        box-shadow:0 16px 36px rgba(0,0,0,.42) !important;
+        backdrop-filter:blur(14px) !important;
+        pointer-events:auto !important;
+      }
+      #mFloatPrev{left:8px !important}
+      #mFloatNext{right:8px !important}
+      .m-swipe{padding-left:24px !important;padding-right:24px !important}
+      .m-slide{flex-basis:82% !important}
+      .m-arrows{display:none !important}
+    }
+    @media (min-width:761px){
+      .m-float-nav{display:none !important}
+    }
+
   </style>
 </head>
 <body class="scene-home">
   <div id="app"><canvas id="webgl"></canvas><div class="scanlines"></div><div class="noise"></div><div class="vignette"></div><div class="hud-glow"></div>
+    <div class="m-float-nav" aria-label="Mobile attraction navigation"><button class="m-float-arrow" id="mFloatPrev">‹</button><button class="m-float-arrow" id="mFloatNext">›</button></div>
+
     <div class="ui"><div class="shell"><header class="topbar"><div class="brand"><div class="logo">GL</div><div class="brand-copy"><strong>Gameland Cookstown</strong><span>3D motion portal for VR, sim racing, bowling, arcade, parties and group bookings</span></div></div><div class="top-actions"><button class="pill" id="soundBtn" aria-pressed="false">🔊 Sound Off</button><button class="pill" id="shareBtn">↗ Share</button><button class="pill" id="recenterBtn">◎ Recenter</button><a class="pill primary" id="headerActionBtn" href="https://www.gamelandcookstown.co.uk/" target="_blank" rel="noopener">Book / Enquire</a></div></header>
       <div class="notice"><strong>Private concept demo</strong><span>Built as a digital front desk. Desktop stays immersive, while mobile is optimised for fast taps and conversion. Final links, wording, prices, offers and imagery should be approved before launch.</span></div>
       <div class="overlay-grid"><div class="left-ghost"></div><aside class="panel" id="detailPanel"><div class="panel-head"><div><div class="kicker">Selected zone</div><h2 class="panel-title" id="panelTitle">Enter Gameland</h2></div><div class="scene-dot"></div></div><div class="panel-body" id="panelBody"></div></aside></div>
